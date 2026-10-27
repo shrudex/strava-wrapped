@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { parseCSV, pd, analyzeTrack } from '../src/lib/parse.js';
+process.env.TZ = 'Asia/Kolkata';
+import { parseCSV, pd, analyzeTrack, localize } from '../src/lib/parse.js';
+import { isGrounded } from '../src/lib/aiCheck.js';
 import { rng, prv, stats } from '../src/lib/stats.js';
 import { fK, fT, fP } from '../src/lib/format.js';
 
@@ -95,4 +97,30 @@ describe('format', () => {
     expect(fP(333.4)).toBe('5:33');
     expect(fP(null)).toBe('—');
   });
+});
+
+describe('localize', () => {
+  it('moves a late-UTC run onto the next local day (IST)', () => {
+    expect(localize(Date.UTC(2025, 0, 5, 23, 30))).toBe(Date.UTC(2025, 0, 6, 5, 0));
+  });
+});
+
+describe('elevation profile', () => {
+  const M = 111194.9;
+  const up = Array.from({ length: 1201 }, (_, i) => [(i * 10) / M, 0, 1_700_000_000 + (i * 10) / 3, 100 + i * 0.05]);
+  it('is built from altitude and rises with the track', () => {
+    const r = analyzeTrack(up);
+    expect(r.E.length).toBe(100);
+    expect(r.E[99][1]).toBeGreaterThan(r.E[0][1] + 40);
+  });
+  it('is null when altitude is missing', () => {
+    expect(analyzeTrack(up.map(p => [p[0], p[1], p[2], NaN])).E).toBeNull();
+  });
+});
+
+describe('AI output check', () => {
+  const facts = ['Period: 2026', 'Runs: 58', 'Total distance: 412.5 km'];
+  it('accepts text that only uses given numbers', () => expect(isGrounded('In 2026 you ran 58 times for 412.5 km.', facts)).toBe(true));
+  it('rejects invented numbers', () => expect(isGrounded('You ran 60 times.', facts)).toBe(false));
+  it('rejects links', () => expect(isGrounded('See https://x.com 58', facts)).toBe(false));
 });

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import JSZip from 'jszip';
 import { html } from './html.js';
-import { parseCSV, pd } from './lib/parse.js';
+import { parseCSV, pd, localize } from './lib/parse.js';
 import { fD } from './lib/format.js';
 import { Kpi } from './components/Widgets.js';
 import { Report } from './components/Report.js';
@@ -27,7 +27,7 @@ export function App(){
     let dist=gn(r,'Distance.1');if(dist==null&&gn(r,'Distance')!=null)dist=gn(r,'Distance')*1000;
     const fn=gi(r,'Filename');let gps='none';if(fn){const ex=!!zz.file(base+fn);gps=!ex?'missing':/\.(gpx|tcx|fit)(\.gz)?$/i.test(fn)?'track':'unsupported'}
     const type=(gi(r,'Activity Type')||'Unknown').trim();
-    acts.push({id:gi(r,'Activity ID')||'row'+i,t,name:gi(r,'Activity Name'),type,k:type.toLowerCase(),dist,mt:gn(r,'Moving Time'),et:gn(r,'Elapsed Time'),elev:gn(r,'Elevation Gain'),hr:gn(r,'Average Heart Rate'),file:fn?base+fn:null,gps})});
+    acts.push({id:gi(r,'Activity ID')||'row'+i,t:localize(t),name:gi(r,'Activity Name'),type,k:type.toLowerCase(),dist,mt:gn(r,'Moving Time'),et:gn(r,'Elapsed Time'),elev:gn(r,'Elevation Gain'),hr:gn(r,'Average Heart Rate'),file:fn?base+fn:null,gps})});
    if(!acts.length)throw Error('No activities could be read from activities.csv. The export format may have changed.');
    const runs=acts.filter(x=>x.k=='run'),ign={};acts.filter(x=>x.k!='run').forEach(x=>ign[x.type]=(ign[x.type]||0)+1);
    if(!runs.length)throw Error('No runs were found in this export (activity type “Run”). Other activity types are ignored.');
@@ -43,11 +43,11 @@ export function App(){
    ${D.acts.some(x=>x.gps=='missing')&&html`<p className="mut">Some activities point to GPS files that are not in the ZIP; they will use CSV data only.</p>`}
    ${D.acts.some(x=>x.gps=='unsupported')&&html`<p className="mut">Some GPS files use an unsupported file type; those runs use CSV data only.</p>`}</div>
    <p><button className="btn" onClick=${()=>setGo(true)}>Build my Wrapped</button> <button className="btn alt" onClick=${reset}>Choose another file</button></p></div>`}
- return html`<div className="wrap"><h1>Strava<br/>Wrapped</h1><p style=${{fontSize:20}}>Your training data, turned into a story.</p>
-  <label className=${'drop'+(over?' on':'')} style=${{display:'block'}} onDragOver=${e=>{e.preventDefault();setOver(true)}} onDragLeave=${()=>setOver(false)} onDrop=${e=>{e.preventDefault();setOver(false);load(e.dataTransfer.files[0])}}>
-   <b className="n" style=${{fontSize:22}}>${busy?'Reading your export…':'Drop your Strava export ZIP here'}</b><div className="mut">or tap to choose the file</div>
+ return html`<div className="wrap home"><h1>Strava<br/>Wrapped</h1><p className="tag-line">Upload your Strava export. Get your running story.</p>
+  <label className=${'drop'+(over?' on':'')} onDragOver=${e=>{e.preventDefault();setOver(true)}} onDragLeave=${()=>setOver(false)} onDrop=${e=>{e.preventDefault();setOver(false);load(e.dataTransfer.files[0])}}>
+   <b className="n">${busy?'Reading your export…':'Choose your Strava ZIP'}</b><span className="mut">or drop it here</span>
    <input type="file" accept=".zip,application/zip" hidden onChange=${e=>load(e.target.files[0])}/></label>
   ${err&&html`<div className="err" role="alert">${err}</div>`}
-  <div className="card"><h2>Private by design</h2><p>Your ZIP is read in this browser. Nothing is uploaded, no Strava login is needed, and only <code>activities.csv</code> and the GPS files for your runs (GPX, TCX or FIT) are opened. Closing the page or clearing data removes everything.</p>
-  <p className="mut">Get your export in Strava under Settings, My Account, Download or Delete Your Account.</p></div>
-  <footer>Independent project, not affiliated with or endorsed by Strava.<br/>Vibe coded with love by Shubh Sinha (shrudex)</footer></div>`}
+  <p className="mut">Private: your file is read in your browser and never uploaded.</p>
+  <details className="mut"><summary>How do I get my export?</summary><p>In Strava: Settings, My Account, Download or Delete Your Account, then request your archive. Strava emails you a ZIP link.</p></details>
+  <footer>Independent project, not affiliated with Strava.<br/>Vibe coded with love by Shubh Sinha (shrudex)</footer></div>`}

@@ -3,12 +3,41 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>Strava Wrapped</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏃</text></svg>" />
+    <title>Strava Wrapped: your running year in review, free and private</title>
+    <meta name="description" content="Upload your Strava export ZIP and get a Wrapped-style running recap: distance, splits, best efforts, streaks, calendar heatmap and shareable cards. Free, and your data never leaves your browser." />
+    <meta name="keywords" content="Strava Wrapped, Strava year in review, running recap, running stats, Strava export, Strava analysis, running heatmap" />
+    <meta name="author" content="Shubh Sinha" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <meta name="theme-color" content="#ff4b2b" />
+    <link rel="canonical" href="https://strava-wrapped.vercel.app/" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Strava Wrapped" />
+    <meta property="og:title" content="Strava Wrapped: your running year in review" />
+    <meta property="og:description" content="Upload your Strava export and get your running story: distance, splits, streaks, heatmap and shareable cards. Free and private." />
+    <meta property="og:url" content="https://strava-wrapped.vercel.app/" />
+    <meta property="og:image" content="https://strava-wrapped.vercel.app/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Strava Wrapped: your running year in review" />
+    <meta name="twitter:description" content="Upload your Strava export and get your running story. Free and private." />
+    <meta name="twitter:image" content="https://strava-wrapped.vercel.app/og-image.png" />
+    <script type="application/ld+json">
+      {"@context":"https://schema.org","@type":"WebApplication","name":"Strava Wrapped","url":"https://strava-wrapped.vercel.app/","description":"Turn a Strava export ZIP into a Wrapped-style running recap with stats, charts and shareable cards. Runs entirely in your browser.","applicationCategory":"HealthApplication","operatingSystem":"Any","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"creator":{"@type":"Person","name":"Shubh Sinha"}}
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet" />
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <main style="font-family:system-ui,sans-serif;max-width:640px;margin:15vh auto;padding:16px">
+        <h1>Strava Wrapped</h1>
+        <p>Upload your Strava export ZIP and get a Wrapped-style running recap: total distance, km splits, best efforts, streaks, a calendar heatmap and shareable cards. Free, and your data never leaves your browser.</p>
+        <noscript><p>Please enable JavaScript to use Strava Wrapped.</p></noscript>
+      </main>
+    </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
