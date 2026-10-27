@@ -29,3 +29,15 @@ table{width:100%;border-collapse:collapse;font-size:14px}td,th{padding:7px 4px;b
 img.sc{width:100%;border-radius:18px;display:block}
 footer{text-align:center;padding:24px 0;color:var(--mut);font-size:13px}
 @media(min-width:600px){.grid{grid-template-columns:repeat(4,1fr)}}
+
+.printfoot{display:block}
+@media print{
+ :root{--bg:#fff;--card:#fff;--ink:#111;--mut:#555;--line:#ddd;padding:0}
+ body::before,.bar,.noprint{display:none!important}
+ .wrap{max-width:none;padding:0}
+ .card{break-inside:avoid;border:1px solid #ddd;margin:10px 0}
+ .hero{background:#ff4b2b!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+ svg{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+ footer.printfoot{position:fixed;bottom:0;left:0;right:0;padding:0;font-size:9pt}
+ @page{margin:14mm 14mm 18mm;@bottom-right{content:"Page " counter(page);font-size:9pt;color:#666}}
+}

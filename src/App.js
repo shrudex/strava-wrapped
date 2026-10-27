@@ -25,27 +25,29 @@ export function App(){
    const base=ck.slice(0,ck.length-'activities.csv'.length);let bad=0;const acts=[];
    rows.slice(1).forEach((r,i)=>{const t=pd(gi(r,'Activity Date'));if(t==null){bad++;return}
     let dist=gn(r,'Distance.1');if(dist==null&&gn(r,'Distance')!=null)dist=gn(r,'Distance')*1000;
-    const fn=gi(r,'Filename');let gps='none';if(fn){const ex=!!zz.file(base+fn);gps=!ex?'missing':/\.gpx$/i.test(fn)?'gpx':'unsupported'}
+    const fn=gi(r,'Filename');let gps='none';if(fn){const ex=!!zz.file(base+fn);gps=!ex?'missing':/\.(gpx|tcx|fit)(\.gz)?$/i.test(fn)?'track':'unsupported'}
     const type=(gi(r,'Activity Type')||'Unknown').trim();
     acts.push({id:gi(r,'Activity ID')||'row'+i,t,name:gi(r,'Activity Name'),type,k:type.toLowerCase(),dist,mt:gn(r,'Moving Time'),et:gn(r,'Elapsed Time'),elev:gn(r,'Elevation Gain'),hr:gn(r,'Average Heart Rate'),file:fn?base+fn:null,gps})});
    if(!acts.length)throw Error('No activities could be read from activities.csv. The export format may have changed.');
-   setZ(zz);setD({acts,bad});
+   const runs=acts.filter(x=>x.k=='run'),ign={};acts.filter(x=>x.k!='run').forEach(x=>ign[x.type]=(ign[x.type]||0)+1);
+   if(!runs.length)throw Error('No runs were found in this export (activity type “Run”). Other activity types are ignored.');
+   setZ(zz);setD({acts:runs,ign,bad});
   }catch(e){setErr(e.message||'Could not read that file.')}
   setBusy(false)};
  const reset=()=>{setD(null);setZ(null);setGo(false);setErr('')};
  if(D&&go)return html`<${Report} D=${D} zip=${z} onBack=${reset}/>`;
- if(D){const ts={};D.acts.forEach(x=>ts[x.type]=(ts[x.type]||0)+1);const ds=D.acts.map(x=>x.t);
-  return html`<div className="wrap"><h1>Import summary</h1><div className="card"><div className="grid">${[Kpi('Activities',D.acts.length),Kpi('First',fD(Math.min(...ds))),Kpi('Last',fD(Math.max(...ds))),Kpi('GPX matched',D.acts.filter(x=>x.gps=='gpx').length)]}</div>
-   <p><b>Types found:</b> ${Object.entries(ts).map(([k,v])=>k+' ('+v+')').join(', ')}</p>
+ if(D){const ds=D.acts.map(x=>x.t);
+  return html`<div className="wrap"><h1>Import summary</h1><div className="card"><div className="grid">${[Kpi('Runs',D.acts.length),Kpi('First',fD(Math.min(...ds))),Kpi('Last',fD(Math.max(...ds))),Kpi('GPS tracks',D.acts.filter(x=>x.gps=='track').length)]}</div>
+   ${Object.keys(D.ign).length>0&&html`<p className="mut">Ignored (not runs): ${Object.entries(D.ign).map(([k,v])=>k+' ('+v+')').join(', ')}</p>`}
    ${D.bad>0&&html`<p className="mut">${D.bad} rows skipped: no readable date.</p>`}
    ${D.acts.some(x=>x.gps=='missing')&&html`<p className="mut">Some activities point to GPS files that are not in the ZIP; they will use CSV data only.</p>`}
-   ${D.acts.some(x=>x.gps=='unsupported')&&html`<p className="mut">Some GPS files are not GPX (for example FIT); those activities use CSV data only.</p>`}</div>
+   ${D.acts.some(x=>x.gps=='unsupported')&&html`<p className="mut">Some GPS files use an unsupported file type; those runs use CSV data only.</p>`}</div>
    <p><button className="btn" onClick=${()=>setGo(true)}>Build my Wrapped</button> <button className="btn alt" onClick=${reset}>Choose another file</button></p></div>`}
  return html`<div className="wrap"><h1>Strava<br/>Wrapped</h1><p style=${{fontSize:20}}>Your training data, turned into a story.</p>
   <label className=${'drop'+(over?' on':'')} style=${{display:'block'}} onDragOver=${e=>{e.preventDefault();setOver(true)}} onDragLeave=${()=>setOver(false)} onDrop=${e=>{e.preventDefault();setOver(false);load(e.dataTransfer.files[0])}}>
    <b className="n" style=${{fontSize:22}}>${busy?'Reading your export…':'Drop your Strava export ZIP here'}</b><div className="mut">or tap to choose the file</div>
    <input type="file" accept=".zip,application/zip" hidden onChange=${e=>load(e.target.files[0])}/></label>
   ${err&&html`<div className="err" role="alert">${err}</div>`}
-  <div className="card"><h2>Private by design</h2><p>Your ZIP is read in this browser. Nothing is uploaded, no Strava login is needed, and only <code>activities.csv</code> and the GPX files for your runs are opened. Closing the page or clearing data removes everything.</p>
+  <div className="card"><h2>Private by design</h2><p>Your ZIP is read in this browser. Nothing is uploaded, no Strava login is needed, and only <code>activities.csv</code> and the GPS files for your runs (GPX, TCX or FIT) are opened. Closing the page or clearing data removes everything.</p>
   <p className="mut">Get your export in Strava under Settings, My Account, Download or Delete Your Account.</p></div>
   <footer>Independent project, not affiliated with or endorsed by Strava.<br/>Vibe coded with love by Shubh Sinha (shrudex)</footer></div>`}
