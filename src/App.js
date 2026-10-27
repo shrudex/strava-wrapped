@@ -1,0 +1,51 @@
+import { useState } from 'react';
+import JSZip from 'jszip';
+import { html } from './html.js';
+import { parseCSV, pd } from './lib/parse.js';
+import { fD } from './lib/format.js';
+import { Kpi } from './components/Widgets.js';
+import { Report } from './components/Report.js';
+
+export function App(){
+ const [D,setD]=useState(null),[z,setZ]=useState(null),[err,setErr]=useState(''),[busy,setBusy]=useState(false),[go,setGo]=useState(false),[over,setOver]=useState(false);
+ const load=async f=>{if(!f)return;setErr('');setBusy(true);
+  try{
+   if(!/\.zip$/i.test(f.name))throw Error('Please choose the .zip file from your Strava export.');
+   if(f.size>1.5e9)throw Error('This file is over 1.5 GB, which is too large to process in the browser.');
+   const zz=await JSZip.loadAsync(f);let tot=0;
+   for(const k in zz.files){if(/(^|[\\/])\.\.([\\/]|$)/.test(k)||/^([\\/]|[A-Za-z]:)/.test(k))throw Error('Unsafe archive: it contains paths outside the export folder. Nothing was processed.');tot+=(zz.files[k]._data&&zz.files[k]._data.uncompressedSize)||0}
+   if(tot>8e9||(f.size&&tot/f.size>300))throw Error('Unsafe archive: the compression ratio is unusually high. Nothing was processed.');
+   const ck=Object.keys(zz.files).find(k=>/(^|\/)activities\.csv$/i.test(k));
+   if(!ck)throw Error('activities.csv was not found. Request your export in Strava under Settings, My Account, Download or Delete Your Account, then upload that ZIP.');
+   const rows=parseCSV(await zz.file(ck).async('string')).filter(r=>r.some(c=>c.trim()));
+   if(rows.length<2)throw Error('activities.csv has no activity rows.');
+   const seen={},H=rows[0].map(h=>{h=h.trim();const c=(seen[h]=(seen[h]??-1)+1);return c?h+'.'+c:h});
+   const gi=(r,n)=>{const i=H.indexOf(n);if(i<0)return null;const v=(r[i]||'').trim();return v===''?null:v};
+   const gn=(r,n)=>{const v=gi(r,n);if(v==null)return null;const x=Number(v.replace(/,/g,''));return isFinite(x)?x:null};
+   const base=ck.slice(0,ck.length-'activities.csv'.length);let bad=0;const acts=[];
+   rows.slice(1).forEach((r,i)=>{const t=pd(gi(r,'Activity Date'));if(t==null){bad++;return}
+    let dist=gn(r,'Distance.1');if(dist==null&&gn(r,'Distance')!=null)dist=gn(r,'Distance')*1000;
+    const fn=gi(r,'Filename');let gps='none';if(fn){const ex=!!zz.file(base+fn);gps=!ex?'missing':/\.gpx$/i.test(fn)?'gpx':'unsupported'}
+    const type=(gi(r,'Activity Type')||'Unknown').trim();
+    acts.push({id:gi(r,'Activity ID')||'row'+i,t,name:gi(r,'Activity Name'),type,k:type.toLowerCase(),dist,mt:gn(r,'Moving Time'),et:gn(r,'Elapsed Time'),elev:gn(r,'Elevation Gain'),hr:gn(r,'Average Heart Rate'),file:fn?base+fn:null,gps})});
+   if(!acts.length)throw Error('No activities could be read from activities.csv. The export format may have changed.');
+   setZ(zz);setD({acts,bad});
+  }catch(e){setErr(e.message||'Could not read that file.')}
+  setBusy(false)};
+ const reset=()=>{setD(null);setZ(null);setGo(false);setErr('')};
+ if(D&&go)return html`<${Report} D=${D} zip=${z} onBack=${reset}/>`;
+ if(D){const ts={};D.acts.forEach(x=>ts[x.type]=(ts[x.type]||0)+1);const ds=D.acts.map(x=>x.t);
+  return html`<div className="wrap"><h1>Import summary</h1><div className="card"><div className="grid">${[Kpi('Activities',D.acts.length),Kpi('First',fD(Math.min(...ds))),Kpi('Last',fD(Math.max(...ds))),Kpi('GPX matched',D.acts.filter(x=>x.gps=='gpx').length)]}</div>
+   <p><b>Types found:</b> ${Object.entries(ts).map(([k,v])=>k+' ('+v+')').join(', ')}</p>
+   ${D.bad>0&&html`<p className="mut">${D.bad} rows skipped: no readable date.</p>`}
+   ${D.acts.some(x=>x.gps=='missing')&&html`<p className="mut">Some activities point to GPS files that are not in the ZIP; they will use CSV data only.</p>`}
+   ${D.acts.some(x=>x.gps=='unsupported')&&html`<p className="mut">Some GPS files are not GPX (for example FIT); those activities use CSV data only.</p>`}</div>
+   <p><button className="btn" onClick=${()=>setGo(true)}>Build my Wrapped</button> <button className="btn alt" onClick=${reset}>Choose another file</button></p></div>`}
+ return html`<div className="wrap"><h1>Strava<br/>Wrapped</h1><p style=${{fontSize:20}}>Your training data, turned into a story.</p>
+  <label className=${'drop'+(over?' on':'')} style=${{display:'block'}} onDragOver=${e=>{e.preventDefault();setOver(true)}} onDragLeave=${()=>setOver(false)} onDrop=${e=>{e.preventDefault();setOver(false);load(e.dataTransfer.files[0])}}>
+   <b className="n" style=${{fontSize:22}}>${busy?'Reading your export…':'Drop your Strava export ZIP here'}</b><div className="mut">or tap to choose the file</div>
+   <input type="file" accept=".zip,application/zip" hidden onChange=${e=>load(e.target.files[0])}/></label>
+  ${err&&html`<div className="err" role="alert">${err}</div>`}
+  <div className="card"><h2>Private by design</h2><p>Your ZIP is read in this browser. Nothing is uploaded, no Strava login is needed, and only <code>activities.csv</code> and the GPX files for your runs are opened. Closing the page or clearing data removes everything.</p>
+  <p className="mut">Get your export in Strava under Settings, My Account, Download or Delete Your Account.</p></div>
+  <footer>Independent project, not affiliated with or endorsed by Strava.<br/>Vibe coded with love by Shubh Sinha (shrudex)</footer></div>`}
