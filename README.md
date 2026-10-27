@@ -9,19 +9,6 @@ npm install
 npm run dev        # http://localhost:5173
 ```
 
-## Deploy to Vercel with git
-
-```bash
-git init
-git add .
-git commit -m "Strava Wrapped"
-git branch -M main
-git remote add origin https://github.com/<you>/strava-wrapped.git
-git push -u origin main
-```
-
-Then on vercel.com choose **Add New > Project**, import the repo, and keep the detected settings (Framework: Vite, Build: `npm run build`, Output: `dist`). Every push to `main` redeploys.
-
 ## Structure
 
 ```
@@ -38,3 +25,4 @@ src/
 ```
 
 Notes: dates are treated as UTC as exported. Missing values show as unavailable, never zero. Independent project, not affiliated with Strava.
+
