@@ -3,6 +3,8 @@ import JSZip from 'jszip';
 import { html } from './html.js';
 import { parseCSV, pd, localize } from './lib/parse.js';
 import { fD } from './lib/format.js';
+import { X_URL, LINKEDIN_URL } from './lib/constants.js';
+import { INTRO, FAQ } from './content/faq.js';
 import { Kpi } from './components/Widgets.js';
 import { Report } from './components/Report.js';
 
@@ -37,17 +39,25 @@ export function App(){
  const reset=()=>{setD(null);setZ(null);setGo(false);setErr('')};
  if(D&&go)return html`<${Report} D=${D} zip=${z} onBack=${reset}/>`;
  if(D){const ds=D.acts.map(x=>x.t);
-  return html`<div className="wrap"><h1>Import summary</h1><div className="card"><div className="grid">${[Kpi('Runs',D.acts.length),Kpi('First',fD(Math.min(...ds))),Kpi('Last',fD(Math.max(...ds))),Kpi('GPS tracks',D.acts.filter(x=>x.gps=='track').length)]}</div>
+  return html`<div className="wrap"><h1>Import <span className="grad">locked in</span> ✅</h1><div className="card"><div className="grid">${[Kpi('Runs',D.acts.length),Kpi('First',fD(Math.min(...ds))),Kpi('Last',fD(Math.max(...ds))),Kpi('GPS tracks',D.acts.filter(x=>x.gps=='track').length)]}</div>
    ${Object.keys(D.ign).length>0&&html`<p className="mut">Ignored (not runs): ${Object.entries(D.ign).map(([k,v])=>k+' ('+v+')').join(', ')}</p>`}
    ${D.bad>0&&html`<p className="mut">${D.bad} rows skipped: no readable date.</p>`}
    ${D.acts.some(x=>x.gps=='missing')&&html`<p className="mut">Some activities point to GPS files that are not in the ZIP; they will use CSV data only.</p>`}
    ${D.acts.some(x=>x.gps=='unsupported')&&html`<p className="mut">Some GPS files use an unsupported file type; those runs use CSV data only.</p>`}</div>
-   <p><button className="btn" onClick=${()=>setGo(true)}>Build my Wrapped</button> <button className="btn alt" onClick=${reset}>Choose another file</button></p></div>`}
- return html`<div className="wrap home"><h1>Strava<br/>Wrapped</h1><p className="tag-line">Upload your Strava export. Get your running story.</p>
-  <label className=${'drop'+(over?' on':'')} onDragOver=${e=>{e.preventDefault();setOver(true)}} onDragLeave=${()=>setOver(false)} onDrop=${e=>{e.preventDefault();setOver(false);load(e.dataTransfer.files[0])}}>
-   <b className="n">${busy?'Reading your export…':'Choose your Strava ZIP'}</b><span className="mut">or drop it here</span>
-   <input type="file" accept=".zip,application/zip" hidden onChange=${e=>load(e.target.files[0])}/></label>
-  ${err&&html`<div className="err" role="alert">${err}</div>`}
-  <p className="mut">Private: your file is read in your browser and never uploaded.</p>
-  <details className="mut"><summary>How do I get my export?</summary><p>In Strava: Settings, My Account, Download or Delete Your Account, then request your archive. Strava emails you a ZIP link.</p></details>
-  <footer>Independent project, not affiliated with Strava.<br/>Vibe coded with love by Shubh Sinha (shrudex)</footer></div>`}
+   <p><button className="btn" onClick=${()=>setGo(true)}>Build my Wrapped ✨</button> <button className="btn alt" onClick=${reset}>Choose another file</button></p></div>`}
+ return html`<div className="wrap">
+  <header className="home"><div className="blobs" aria-hidden="true"></div>
+   <p className="eyebrow">🏃 free · private · no login</p>
+   <h1>Your running<br/><span className="grad">Wrapped</span> ✨</h1>
+   <p className="tag-line">Drop your Strava export and get your stats, streaks, splits and share cards. All receipts, zero cringe. 🧾</p>
+   <label className=${'drop'+(over?' on':'')} onDragOver=${e=>{e.preventDefault();setOver(true)}} onDragLeave=${()=>setOver(false)} onDrop=${e=>{e.preventDefault();setOver(false);load(e.dataTransfer.files[0])}}>
+    <b className="n">${busy?'⏳ Reading your export…':'📦 Choose your Strava ZIP'}</b><span className="mut">or drop it here</span>
+    <input type="file" accept=".zip,application/zip" hidden onChange=${e=>load(e.target.files[0])}/></label>
+   ${err&&html`<div className="err" role="alert">${err}</div>`}
+   <p className="mut">🔒 Your file is read in your browser and never uploaded.</p>
+   <div className="pills">${['📈 Volume','⏱️ Km splits','🔥 Streaks','🟩 Heatmap','⛰️ Elevation','🐐 Badges','📲 Share cards'].map(t=>html`<span key=${t} className="pill">${t}</span>`)}</div>
+   <details className="faq"><summary>🤔 How do I get my export?</summary><p>In Strava: Settings, My Account, Download or Delete Your Account, then request your archive. Strava emails you a ZIP link.</p></details>
+  </header>
+  <section className="seo"><h2>${INTRO.h}</h2>${INTRO.p.map((t,i)=>html`<p key=${i}>${t}</p>`)}
+   <h2>❓ FAQ</h2>${FAQ.map(f=>html`<details key=${f.q} className="faq"><summary>${f.q}</summary><p>${f.a}</p></details>`)}</section>
+  <footer>Independent project, not affiliated with Strava.<br/>Vibe coded with love by Shubh Sinha (shrudex)<br/><a href=${X_URL}>X @shrudex</a> · <a href=${LINKEDIN_URL}>LinkedIn</a></footer></div>`}

@@ -17,6 +17,10 @@ npm run build      # production build in dist/
 
 Share cards, the PDF and pre-written WhatsApp and X messages all link to `https://strava-wrapped.vercel.app/` (set in `src/lib/constants.js`; also update `index.html`, `public/sitemap.xml` and `public/robots.txt` if the domain changes). Add the site in Google Search Console and submit the sitemap.
 
+## Home-page SEO content
+
+The intro and FAQ live in `src/content/faq.js`. They render on the home page and are also injected into the static HTML plus FAQPage JSON-LD at build time (see `vite.config.js`), so crawlers see real text before JavaScript runs. Edit that one file to change both.
+
 ## PDF export
 
 "Download PDF" opens the browser print dialog with a print stylesheet; choose **Save as PDF**. Page numbers appear in Chrome and Edge; Safari and Firefox show the branding footer without page numbers.

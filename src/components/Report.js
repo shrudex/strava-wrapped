@@ -1,11 +1,12 @@
 import { useState, useMemo, useEffect } from 'react';
 import { html } from '../html.js';
-import { MON, DAY, SITE_URL } from '../lib/constants.js';
+import { MON, DAY, SITE_URL, X_URL, LINKEDIN_URL } from '../lib/constants.js';
 import { readTrack } from '../lib/parse.js';
 import { rng, prv, stats } from '../lib/stats.js';
 import { fK, fT, fP, fD, pace } from '../lib/format.js';
 import { Bars, Kpi, Route, Share, Line, Heat, AiSummary } from './Widgets.js';
 
+const BE={'Consistency merchant':'🔥','Weekend warrior':'🎉','Elevation goblin':'⛰️','Comeback arc':'🔄','Early bird':'🌅','Night owl':'🌙'};
 export function Report({D,zip,onBack}){
  const A0=D.acts;
  const years=[...new Set(A0.map(x=>new Date(x.t).getUTCFullYear()))].sort((p,q)=>q-p);
@@ -52,9 +53,9 @@ export function Report({D,zip,onBack}){
  const tpl='In '+per+' you logged '+st.n+' run'+(st.n==1?'':'s')+(st.dist!=null?', covering '+fK(st.dist)+' km':'')+' over '+st.days+' active day'+(st.days==1?'':'s')+', about '+st.rpw.toFixed(1)+' a week. '+(st.longest?'Your longest was '+fK(st.longest.dist)+' km. ':'')+(st.streak>1?'Your best streak was '+st.streak+' days in a row.':'');
  const shareText='I ran '+(st.dist!=null?fK(st.dist)+' km across ':'')+st.n+' runs in '+per+' 🏃 What’s your running story?';
  const cards=[
-  {name:'Headline',per,sub:'Strava Wrapped',big:fK(st.dist),unit:'km',lines:[st.n+' activities',fT(st.mt)+' moving',st.elev!=null?Math.round(st.elev)+' m climbed':'Elevation not in data']},
-  {name:'Longest',per,sub:'Biggest effort',big:st.longest?fK(st.longest.dist):'—',unit:'km longest session',lines:[st.longest?fD(st.longest.t):'',fast5?'Fastest 5K+ pace '+fP(pace(fast5))+'/km':'Avg '+fK(st.avg)+' km per activity']},
-  {name:'Consistency',per,sub:'Showing up',big:''+st.days,unit:'active days',lines:['Longest streak: '+st.streak+' days','Active-week streak: '+st.wst,st.rpw.toFixed(1)+' per week']}
+  {name:'Headline',per,sub:'🏃 Your running Wrapped',big:fK(st.dist),unit:'km',lines:[st.n+' activities',fT(st.mt)+' moving',st.elev!=null?Math.round(st.elev)+' m climbed':'Elevation not in data']},
+  {name:'Longest',per,sub:'🚀 Biggest effort',big:st.longest?fK(st.longest.dist):'—',unit:'km longest session',lines:[st.longest?fD(st.longest.t):'',fast5?'Fastest 5K+ pace '+fP(pace(fast5))+'/km':'Avg '+fK(st.avg)+' km per activity']},
+  {name:'Consistency',per,sub:'🔥 Showing up',big:''+st.days,unit:'active days',lines:['Longest streak: '+st.streak+' days','Active-week streak: '+st.wst,st.rpw.toFixed(1)+' per week']}
  ];
  const bad=P.mode=='custom'&&b<a;
  const useD=st.dn>0;
@@ -66,42 +67,42 @@ export function Report({D,zip,onBack}){
   <div>${P.mode!='custom'&&years.map(y=>html`<button key=${y} className=${'chip'+(P.y==y?' on':'')} onClick=${()=>setP({...P,y})}>${y}</button>`)}
    ${P.mode=='month'&&html`<select aria-label="Month" value=${P.m} onChange=${e=>setP({...P,m:+e.target.value})}>${MON.map((m,i)=>html`<option key=${i} value=${i}>${m}</option>`)}</select>`}
    ${P.mode=='custom'&&html`<span><input type="date" aria-label="Start date" value=${P.s} onChange=${e=>setP({...P,s:e.target.value})}/> <input type="date" aria-label="End date" value=${P.e} onChange=${e=>setP({...P,e:e.target.value})}/></span>`}</div>
-  <div className="noprint" style=${{float:'right'}}><button className="chip" onClick=${()=>{const t=document.title;document.title='Strava Wrapped '+per;window.print();document.title=t}}>Download PDF</button></div>
+  <div className="noprint" style=${{float:'right'}}><button className="chip" onClick=${()=>{const t=document.title;document.title='Strava Wrapped '+per;window.print();document.title=t}}>📄 Download PDF</button></div>
   <div className="mut">${bad?'End date must not be before the start date.':S.length+' runs in this period · dates in your local time'}</div>
  </div>
- ${!S.length?html`<div className="card"><h2>Nothing here yet</h2><p>No runs in this period. Try another year or month.</p></div>`:html`<div>
- <div className="card hero"><div>Your {per} in motion</div><div className="big">${fK(st.dist)}<small style=${{fontSize:'.3em'}}> km</small></div><p>${st.n} runs · ${fT(st.mt)} moving · ${st.days} active days</p></div>
- <div className="card"><h2>At a glance</h2><div className="grid">
+ ${!S.length?html`<div className="card"><h2>🫥 Nothing here yet</h2><p>No runs in this period. Try another year or month.</p></div>`:html`<div>
+ <div className="card hero"><div className="eyebrow">${per} · your running Wrapped</div><div className="big">${fK(st.dist)}<small style=${{fontSize:'.3em'}}> km</small></div><p>🏃 ${st.n} runs · ⏱️ ${fT(st.mt)} moving · 📅 ${st.days} active days</p></div>
+ <div className="card"><h2>⚡ At a glance</h2><div className="grid">
   ${[Kpi('Runs',st.n),Kpi('Distance (km)',fK(st.dist)),Kpi('Moving time',fT(st.mt)),Kpi('Elevation (m)',st.elev==null?'—':Math.round(st.elev)),Kpi('Active days',st.days),Kpi('Per week',st.rpw.toFixed(1)),Kpi('Longest (km)',st.longest?fK(st.longest.dist):'—'),Kpi('Avg distance (km)',fK(st.avg))]}</div>
   ${!useD&&html`<p className="mut">No distance values in this selection, so distance shows as unavailable.</p>`}</div>
- <div className="card"><h2>Your summary</h2><${AiSummary} key=${facts.join('|')} facts=${facts} fallback=${tpl}/></div>
- <div className="card"><h2>${st.weekly?'Week by week':'Month by month'}</h2>
+ <div className="card"><h2>✨ The vibe check</h2><${AiSummary} key=${facts.join('|')} facts=${facts} fallback=${tpl}/></div>
+ <div className="card"><h2>📈 ${st.weekly?'Week by week':'Month by month'}</h2>
   <${Bars} v=${st.bars.map(x=>useD?x.d/1000:x.n)} l=${st.bars.map(x=>x.l)} tops=${st.bars.map(x=>useD?(x.d?Math.round(x.d/1000):''):(x.n||''))} label=${(useD?'Distance in km':'Activity count')+' per '+(st.weekly?'week':'month')+': '+st.bars.map(x=>x.l+' '+(useD?fK(x.d)+' km':x.n)).join(', ')}/>
-  <h2 style=${{marginTop:18}}>Day of the week</h2>
+  <h2 style=${{marginTop:18}}>🗓️ Day of the week</h2>
   <${Bars} v=${st.wd} l=${['M','T','W','T','F','S','S']} tops=${st.wd.map(x=>x||'')} h=${70} c="var(--b)" label=${'Activities by weekday Monday to Sunday: '+st.wd.join(', ')}/></div>
- <div className="card"><h2>Consistency</h2><div className="grid">${[Kpi('Longest streak (days)',st.streak),Kpi('Active-week streak',st.wst),Kpi('Longest gap (days)',st.gap),Kpi('Active days',st.days+' / '+Math.max(1,Math.round(Math.min(b,Date.now())/DAY-a/DAY)))]}</div>
+ <div className="card"><h2>🔥 Consistency</h2><div className="grid">${[Kpi('Longest streak (days)',st.streak),Kpi('Active-week streak',st.wst),Kpi('Longest gap (days)',st.gap),Kpi('Active days',st.days+' / '+Math.max(1,Math.round(Math.min(b,Date.now())/DAY-a/DAY)))]}</div>
   <p className="mut">Streaks use your local calendar days; weeks start on Monday. Denominator: the selected period up to today.</p></div>
- <div className="card"><h2>Run calendar</h2><${Heat} S=${S} a=${a} b=${b}/></div>
- <div className="card"><h2>Records and milestones</h2>${ms.map((m,i)=>html`<div className="bdg" key=${i}><b>${m.t}</b><span className="tag">from CSV</span><div className="mut">${m.d}</div></div>`)}</div>
- <div className="card"><h2>Run deep dive</h2>
+ <div className="card"><h2>🟩 Run calendar</h2><${Heat} S=${S} a=${a} b=${b}/></div>
+ <div className="card"><h2>🏆 Records and milestones</h2>${ms.map((m,i)=>html`<div className="bdg" key=${i}><b>🏅 ${m.t}</b><span className="tag">from CSV</span><div className="mut">${m.d}</div></div>`)}</div>
+ <div className="card"><h2>🔬 Run deep dive</h2>
   ${prog&&html`<p className="mut">Reading GPS files: ${prog[0]} of ${prog[1]}…</p>`}
   ${!G.length&&!prog?html`<p>No usable GPS tracks for these runs, so splits and best efforts are unavailable. Everything else still uses the CSV.</p>`:null}
   ${Object.keys(bestE).length?html`<table><tr><th>Best effort<span className="tag">GPS estimate</span></th><th>Time</th><th>Pace</th><th>Date</th></tr>${Object.entries(bestE).map(([L,r])=>html`<tr key=${L}><td>${L==400?'400 m':L/1000+' km'}</td><td>${fP(r.t)}</td><td>${fP(r.t/(L/1000))}/km</td><td>${fD(r.x.t)}</td></tr>`)}</table>`:null}
-  ${lg&&html`<div><h2 style=${{margin:'18px 0 8px'}}>Splits: ${fD(lg.x.t)}, ${fK(lg.g.tot)} km</h2>
+  ${lg&&html`<div><h2 style=${{margin:'18px 0 8px'}}>⏱️ Splits: ${fD(lg.x.t)}, ${fK(lg.g.tot)} km</h2>
    <${Bars} v=${lg.g.splits.map(s=>1/s)} l=${lg.g.splits.map((_,i)=>i+1)} tops=${lg.g.splits.map(fP)} h=${90} c="var(--a)" label=${'Pace per km: '+lg.g.splits.map(fP).join(', ')}/>
    <p className="mut">Taller bar means faster km. First half ${fP(lg.g.h1/(lg.g.tot/2000))}/km, second half ${fP(lg.g.h2/(lg.g.tot/2000))}/km (elapsed time, so stops count).</p>
-   ${lg.g.E&&html`<div><h2 style=${{margin:'18px 0 8px'}}>Elevation profile</h2><${Line} pts=${lg.g.E} label=${'Elevation profile of your longest tracked run'}/><p className="mut">GPS altitude, smoothed. It can differ from Strava’s corrected elevation.</p></div>`}
+   ${lg.g.E&&html`<div><h2 style=${{margin:'18px 0 8px'}}>⛰️ Elevation profile</h2><${Line} pts=${lg.g.E} label=${'Elevation profile of your longest tracked run'}/><p className="mut">GPS altitude, smoothed. It can differ from Strava’s corrected elevation.</p></div>`}
    <${Route} R=${lg.g.R}/></div>`}</div>
- ${bd.length>0&&html`<div className="card"><h2>GOATed badges</h2>${bd.map((x,i)=>html`<div className="bdg" key=${i}><b>${x[0]}</b><div>${x[1]}</div><div className="mut">${x[2]}</div></div>`)}</div>`}
- <div className="card"><h2>Insights</h2>${ins.map((x,i)=>html`<div className="bdg" key=${i}><b>${x.t}</b><div>${x.b}</div><div className="mut">Evidence: ${x.e}</div></div>`)}
+ ${bd.length>0&&html`<div className="card"><h2>🐐 GOATed badges</h2>${bd.map((x,i)=>html`<div className="bdg" key=${i}><b>${BE[x[0]]||'🏅'} ${x[0]}</b><div>${x[1]}</div><div className="mut">${x[2]}</div></div>`)}</div>`}
+ <div className="card"><h2>🧠 Insights</h2>${ins.map((x,i)=>html`<div className="bdg" key=${i}><b>💡 ${x.t}</b><div>${x.b}</div><div className="mut">Evidence: ${x.e}</div></div>`)}
   <p className="mut">Rule-based, general fitness guidance only, not medical advice.</p></div>
- <div className="card"><h2>Run log</h2><div style=${{overflowX:'auto'}}><table><tr><th>Date</th><th>Type</th><th>km</th><th>Time</th><th>Pace</th></tr>
+ <div className="card"><h2>📒 Run log</h2><div style=${{overflowX:'auto'}}><table><tr><th>Date</th><th>Type</th><th>km</th><th>Time</th><th>Pace</th></tr>
   ${S.slice().reverse().slice(0,60).map(x=>html`<tr key=${x.id}><td>${fD(x.t)}</td><td>${x.type}</td><td>${fK(x.dist)}</td><td>${fT(x.mt)}</td><td>${fP(pace(x))}</td></tr>`)}</table></div>
   ${S.length>60&&html`<p className="mut">Showing the latest 60 of ${S.length}.</p>`}</div>
  <div className="noprint"><${Share} cards=${cards} text=${shareText}/></div>
- <div className="card"><h2>Data coverage and caveats</h2><ul>
+ <div className="card"><h2>🧾 Data coverage and caveats</h2><ul>
   <li>Distance present: ${cov(x=>x.dist!=null)}</li><li>Moving time present: ${cov(x=>x.mt!=null)}</li><li>Heart rate present: ${cov(x=>x.hr!=null)}</li>
   <li>GPS tracks matched: ${cov(x=>x.gps=='track')}${S.some(x=>x.gps=='unsupported')?' ('+S.filter(x=>x.gps=='unsupported').length+' use unsupported file types)':''}</li>
   <li>Missing values are shown as unavailable, never as zero.</li><li>GPS-derived records are estimates and can be off by a few seconds.</li></ul></div></div>`}
- <p className="noprint"><button className="btn alt" onClick=${onBack}>Clear data and start over</button></p>
- <footer className="printfoot">Independent project, not affiliated with or endorsed by Strava.<br/>Vibe coded with love by Shubh Sinha (shrudex)<br/>Make yours: <a href=${SITE_URL}>strava-wrapped.vercel.app</a></footer></div>`}
+ <p className="noprint"><button className="btn alt" onClick=${onBack}>🗑️ Clear data and start over</button></p>
+ <footer className="printfoot">Independent project, not affiliated with or endorsed by Strava.<br/>Vibe coded with love by Shubh Sinha (shrudex)<br/>Make yours: <a href=${SITE_URL}>strava-wrapped.vercel.app</a><br/>Follow <a href=${X_URL}>X @shrudex</a> · <a href=${LINKEDIN_URL}>LinkedIn</a></footer></div>`}

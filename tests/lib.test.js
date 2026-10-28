@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 process.env.TZ = 'Asia/Kolkata';
 import { parseCSV, pd, analyzeTrack, localize } from '../src/lib/parse.js';
 import { isGrounded } from '../src/lib/aiCheck.js';
+import { FAQ, INTRO } from '../src/content/faq.js';
 import { rng, prv, stats } from '../src/lib/stats.js';
 import { fK, fT, fP } from '../src/lib/format.js';
 
@@ -123,4 +124,12 @@ describe('AI output check', () => {
   it('accepts text that only uses given numbers', () => expect(isGrounded('In 2026 you ran 58 times for 412.5 km.', facts)).toBe(true));
   it('rejects invented numbers', () => expect(isGrounded('You ran 60 times.', facts)).toBe(false));
   it('rejects links', () => expect(isGrounded('See https://x.com 58', facts)).toBe(false));
+});
+
+describe('SEO content', () => {
+  it('has a substantial intro and FAQ with plain text only', () => {
+    expect(INTRO.p.join(' ').split(/\s+/).length).toBeGreaterThan(80);
+    expect(FAQ.length).toBeGreaterThanOrEqual(8);
+    FAQ.forEach(f => expect(/[<>]/.test(f.q + f.a)).toBe(false));
+  });
 });
