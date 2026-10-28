@@ -36,6 +36,9 @@ describe('UI smoke tests', () => {
     const t = host.textContent;
     ['The vibe check', 'At a glance', 'Run calendar', 'Share cards', 'Run log', 'Early bird'].forEach(s => expect(t).toContain(s));
     expect(t).not.toContain('{per}');
+    expect(t).toContain(', in motion.');
+    expect(t).not.toContain('NaN');
+    expect(host.querySelectorAll('.mo').length).toBeGreaterThanOrEqual(1);
     expect(t).toContain('2025');
     expect(host.querySelector('a[href="https://strava-wrapped.vercel.app/"]')).toBeTruthy();
   });
